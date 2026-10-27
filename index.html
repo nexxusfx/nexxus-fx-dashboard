@@ -1,921 +1,395 @@
 <!DOCTYPE html>
-<html lang="pt-BR" class="dark">
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NEXXUS FX Hub - Institutional Trading Platform</title>
-
-  <!-- Tailwind CSS -->
+  <title>NEXXUS FX hub - Professional Dashboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- Tailwind Configuration for Themes & Colors -->
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            brand: {
-              neon: '#00FF88',
-              glow: 'rgba(0, 255, 136, 0.15)',
-              darkBg: '#0A0E17',
-              darkCard: '#111827',
-              darkBorder: '#1F2937'
-            }
-          },
-          fontFamily: {
-            sans: ['Inter', 'sans-serif']
-          }
-        }
-      }
-    }
-  </script>
-
-  <!-- Google Font: Inter -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
-
-  <!-- React & React DOM -->
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-
-  <!-- Babel Compiler for JSX -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
-
-  <!-- Chart.js for Quantitative Analytics -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      user-select: none;
-    }
-    .font-mono {
-      font-family: 'JetBrains Mono', monospace;
-    }
-    /* Custom Scrollbar */
-    ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    ::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #374151;
-      border-radius: 3px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #4B5563;
-    }
-    
-    /* Neon Glow Effects */
-    .glow-neon {
-      box-shadow: 0 0 20px rgba(0, 255, 136, 0.25);
-    }
-    .text-glow {
-      text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
-    }
-    
-    /* Social Card Canvas Aesthetic Restored */
-    .social-card-gradient {
-      background: linear-gradient(135deg, #0f172a 0%, #020617 50%, #052e16 100%);
-    }
+    body { font-family: 'Inter', sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+    .neon-glow { box-shadow: 0 0 20px rgba(0, 255, 136, 0.25); }
+    .neon-border { border-color: #00FF88; }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #0A0E17; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #1E293B; border-radius: 3px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #00FF88; }
   </style>
 </head>
-<body class="bg-[#0A0E17] text-gray-100 min-h-screen antialiased selection:bg-[#00FF88] selection:text-black">
-
+<body class="bg-[#0A0E17] text-slate-100 min-h-screen custom-scrollbar">
   <div id="root"></div>
 
   <script type="text/babel">
-    const { useState, useEffect, useRef, useMemo } = React;
+    const { useState, useEffect } = React;
 
-    // --- DICTIONARY & TRANSLATIONS (9 LANGUAGES) ---
-    const i18n = {
-      PT: {
-        overview: "Visão Geral", execution: "Execução & Live", risk: "Calculadora de Risco",
-        quant: "Quant Analytics", performance: "Performance", journal: "Diário de Trading",
-        plan: "Plano de Trading", notifications: "Central de Notificações", antiTilt: "Guarda Anti-Tilt",
-        quantLeak: "Quant Leak Analytics", ecoCalendar: "Calendário Econômico", propTracker: "Prop Firm Tracker",
-        social: "Social Share & Audit", portfolio: "Meu Portfólio",
-        settings: "Configurações", accounts: "Contas Conectadas", planTag: "Plano PRO",
-        renewNotice: "Sua assinatura vence em 3 dias!", payNow: "Renovar Agora",
-        addAccount: "Conectar Nova Conta", search: "Buscar...", close: "Fechar"
-      },
-      EN: {
-        overview: "Overview", execution: "Execution & Live", risk: "Risk Calculator",
-        quant: "Quant Analytics", performance: "Performance", journal: "Trading Journal",
-        plan: "Trading Plan", notifications: "Notifications Hub", antiTilt: "Anti-Tilt Guard",
-        quantLeak: "Quant Leak Analytics", ecoCalendar: "Economic Calendar", propTracker: "Prop Firm Tracker",
-        social: "Social Share & Audit", portfolio: "My Portfolio",
-        settings: "Settings", accounts: "Connected Accounts", planTag: "PRO Plan",
-        renewNotice: "Your subscription expires in 3 days!", payNow: "Renew Now",
-        addAccount: "Connect New Account", search: "Search...", close: "Close"
-      },
-      ES: {
-        overview: "Visión General", execution: "Ejecución y Live", risk: "Calculadora de Riesgo",
-        quant: "Análisis Cuantitativo", performance: "Rendimiento", journal: "Diario de Trading",
-        plan: "Plan de Trading", notifications: "Notificaciones", antiTilt: "Guardia Anti-Tilt",
-        quantLeak: "Quant Leak Analytics", ecoCalendar: "Calendario Económico", propTracker: "Prop Firm Tracker",
-        social: "Social Share y Auditoría", portfolio: "Mi Portafolio",
-        settings: "Configuraciones", accounts: "Cuentas Conectadas", planTag: "Plan PRO",
-        renewNotice: "¡Su suscripción vence en 3 días!", payNow: "Renovar Ahora",
-        addAccount: "Conectar Nueva Cuenta", search: "Buscar...", close: "Cerrar"
-      },
-      FR: { overview: "Aperçu", execution: "Exécution & Live", risk: "Calculateur de Risque", quant: "Quant Analytics", performance: "Performance", journal: "Journal de Trading", plan: "Plan de Trading", notifications: "Notifications", antiTilt: "Garde Anti-Tilt", quantLeak: "Quant Leak Analytics", ecoCalendar: "Calendrier Économique", propTracker: "Prop Firm Tracker", social: "Partage Social & Audit", portfolio: "Mon Portefeuille", settings: "Paramètres", accounts: "Comptes Connectés", planTag: "Plan PRO", renewNotice: "Votre abonnement expire dans 3 jours!", payNow: "Renouveler", addAccount: "Ajouter un Compte", search: "Chercher...", close: "Fermer" },
-      DE: { overview: "Übersicht", execution: "Ausführung & Live", risk: "Risikorechner", quant: "Quant Analytics", performance: "Leistung", journal: "Trading Tagebuch", plan: "Trading Plan", notifications: "Benachrichtigungen", antiTilt: "Anti-Tilt Schutz", quantLeak: "Quant Leak Analytics", ecoCalendar: "Wirtschaftskalender", propTracker: "Prop Firm Tracker", social: "Social Share & Audit", portfolio: "Mein Portfolio", settings: "Einstellungen", accounts: "Verbundene Konten", planTag: "PRO Plan", renewNotice: "Abonnement läuft in 3 Tagen ab!", payNow: "Jetzt Erneuern", addAccount: "Konto Verbinden", search: "Suchen...", close: "Schließen" },
-      IT: { overview: "Panoramica", execution: "Esecuzione & Live", risk: "Calcolatore Rischio", quant: "Quant Analytics", performance: "Performance", journal: "Diario di Trading", plan: "Piano di Trading", notifications: "Notifiche", antiTilt: "Guardia Anti-Tilt", quantLeak: "Quant Leak Analytics", ecoCalendar: "Calendario Economico", propTracker: "Prop Firm Tracker", social: "Social Share & Audit", portfolio: "Il Mio Portafoglio", settings: "Impostazioni", accounts: "Account Connessi", planTag: "Piano PRO", renewNotice: "L'abbonamento scade tra 3 giorni!", payNow: "Rinnova Ora", addAccount: "Connetti Account", search: "Cerca...", close: "Chiudi" },
-      JA: { overview: "概要", execution: "執行 & ライブ", risk: "リスク計算機", quant: "クオンツ分析", performance: "パフォーマンス", journal: "トレード日記", plan: "トレード計画", notifications: "通知センター", antiTilt: "アンチチルトガード", quantLeak: "Quant Leak Analytics", ecoCalendar: "経済指標カレンダー", propTracker: "プロップファーム", social: "ソーシャルシェア", portfolio: "ポートフォリオ", settings: "設定", accounts: "接続アカウント", planTag: "PROプラン", renewNotice: "サブスクリプションは3日で期限切れになります！", payNow: "今すぐ更新", addAccount: "口座を接続", search: "検索...", close: "閉じる" },
-      ZH: { overview: "总览", execution: "执行与实盘", risk: "风险计算器", quant: "量化分析", performance: "绩效", journal: "交易日志", plan: "交易计划", notifications: "通知中心", antiTilt: "防倾斜保护", quantLeak: "Quant Leak Analytics", ecoCalendar: "财经日历", propTracker: "道具公司追踪", social: "社交分享与审计", portfolio: "我的投资组合", settings: "设置", accounts: "已连接账户", planTag: "PRO 计划", renewNotice: "您的订阅将在 3 天内到期！", payNow: "立即续订", addAccount: "连接新账户", search: "搜索...", close: "关闭" },
-      RU: { overview: "Обзор", execution: "Исполнение и Live", risk: "Калькулятор Риска", quant: "Квант Аналитика", performance: "Результативность", journal: "Торговый Дневник", plan: "Торговый План", notifications: "Центр Уведомлений", antiTilt: "Защита Anti-Tilt", quantLeak: "Quant Leak Analytics", ecoCalendar: "Экономический Календарь", propTracker: "Prop Firm Tracker", social: "Соцсети и Аудит", portfolio: "Мой Портфель", settings: "Настройки", accounts: "Подключенные Счета", planTag: "План PRO", renewNotice: "Подписка истекает через 3 дня!", payNow: "Продлить", addAccount: "Подключить Счёт", search: "Поиск...", close: "Закрыть" }
-    };
-
-    // --- MAIN APP COMPONENT ---
     function App() {
-      // Core State
-      const [currentView, setCurrentView] = useState("journal"); // Open restored journal as default to show changes
-      const [lang, setLang] = useState("PT");
-      const [theme, setTheme] = useState("default"); // 'default' (Padrão Neon), 'white', 'dark'
-      const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-      const [isPaywallOpen, setIsPaywallOpen] = useState(false);
-      const [showExpireBanner, setShowExpireBanner] = useState(true);
-
-      // User Accounts & Limits State
-      const [accounts, setAccounts] = useState([
-        { id: "1098221", broker: "FTMO Real Server", type: "Prop Evaluation", balance: 100000, equity: 104250, profit: 4250, status: "Active" },
-        { id: "5541092", broker: "IC Markets Raw", type: "Personal Live", balance: 25000, equity: 26180, profit: 1180, status: "Active" },
-        { id: "8823104", broker: "FundedNext Master", type: "Prop Funded", balance: 200000, equity: 211400, profit: 11400, status: "Active" }
+      // Estado de Autenticação (Login)
+      const [isAuthenticated, setIsAuthenticated] = useState(false);
+      const [userEmail, setUserEmail] = useState('');
+      const [userPassword, setUserPassword] = useState('');
+      
+      // Estado de Navegação e Configurações
+      const [activeTab, setActiveTab] = useState('overview');
+      const [theme, setTheme] = useState('neon'); // neon, white, dark
+      const [showConnectModal, setShowConnectModal] = useState(false);
+      const [selectedPlatform, setSelectedPlatform] = useState('mt5');
+      
+      // Dados Dinâmicos da Conta Conectada
+      const [connectedAccounts, setConnectedAccounts] = useState([
+        { id: 1, name: 'Exness Real MT5', broker: 'Exness', type: 'MT5', accountNumber: '88492011', balance: 12450.80, equity: 12890.20, status: 'Connected' }
       ]);
-      const currentTier = "PRO"; // Limits: Basic: 1, Essential: 5, PRO: 20
-      const maxAccounts = 20;
+      const [activeAccountId, setActiveAccountId] = useState(1);
+      
+      // Dados da Conta Ativa
+      const currentAccount = connectedAccounts.find(a => a.id === activeAccountId) || connectedAccounts[0];
 
-      // Translation helper
-      const t = i18n[lang] || i18n.PT;
+      // Formulário de Nova Conexão
+      const [connServer, setConnServer] = useState('');
+      const [connAccount, setConnAccount] = useState('');
+      const [connPassword, setConnPassword] = useState('');
+      const [connApiKey, setConnApiKey] = useState('');
 
-      // Re-initialize Lucide Icons on view switch
-      useEffect(() => {
-        if (window.lucide) {
-          window.lucide.createIcons();
-        }
-      }, [currentView, isSettingsOpen, isPaywallOpen, theme]);
-
-      // Dynamic Theme Classes
-      const themeClasses = useMemo(() => {
-        if (theme === 'white') {
-          return {
-            bg: 'bg-slate-100 text-slate-900',
-            card: 'bg-white border-slate-200 shadow-sm text-slate-900',
-            border: 'border-slate-200',
-            sidebar: 'bg-white border-r border-slate-200 text-slate-800',
-            accent: 'bg-emerald-600 text-white hover:bg-emerald-700',
-            accentText: 'text-emerald-600',
-            subtext: 'text-slate-500',
-            input: 'bg-slate-50 border-slate-300 text-slate-900 focus:border-emerald-500'
-          };
-        } else if (theme === 'dark') {
-          return {
-            bg: 'bg-black text-gray-100',
-            card: 'bg-zinc-950 border-zinc-800 text-gray-100',
-            border: 'border-zinc-800',
-            sidebar: 'bg-zinc-950 border-r border-zinc-800 text-gray-200',
-            accent: 'bg-white text-black hover:bg-gray-200',
-            accentText: 'text-white',
-            subtext: 'text-zinc-400',
-            input: 'bg-zinc-900 border-zinc-800 text-white focus:border-white'
-          };
-        } else {
-          // Default: Deep Dark + Neon Green
-          return {
-            bg: 'bg-[#0A0E17] text-gray-100',
-            card: 'bg-[#111827] border-[#1F2937] text-gray-100',
-            border: 'border-[#1F2937]',
-            sidebar: 'bg-[#0F172A] border-r border-[#1F2937] text-gray-200',
-            accent: 'bg-[#00FF88] text-black font-semibold hover:bg-emerald-400 glow-neon',
-            accentText: 'text-[#00FF88]',
-            subtext: 'text-gray-400',
-            input: 'bg-[#1A2332] border-[#2A364F] text-white focus:border-[#00FF88]'
-          };
-        }
-      }, [theme]);
-
-      return (
-        <div className={`min-h-screen flex flex-col ${themeClasses.bg}`}>
-          
-          {/* Top Red Alert Countdown Banner (3-day grace period) */}
-          {showExpireBanner && (
-            <div className="bg-red-600/90 text-white px-4 py-2 text-xs md:text-sm font-medium flex items-center justify-between border-b border-red-500 backdrop-blur-sm sticky top-0 z-50">
-              <div className="flex items-center gap-2 mx-auto sm:mx-0">
-                <i data-lucide="alert-triangle" className="w-4 h-4 animate-pulse"></i>
-                <span><strong>Atenção:</strong> Sua assinatura do Plano PRO expira em <strong>3 dias, 14 horas e 22 minutos</strong>.</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <button 
-                  onClick={() => setIsPaywallOpen(true)}
-                  className="bg-white text-red-700 font-bold px-3 py-1 rounded text-xs hover:bg-red-50 transition"
-                >
-                  {t.payNow}
-                </button>
-                <button onClick={() => setShowExpireBanner(false)} className="text-white/80 hover:text-white">
-                  <i data-lucide="x" className="w-4 h-4"></i>
-                </button>
-              </div>
-            </div>
-          )}
-
-          <div className="flex flex-1 overflow-hidden">
-            
-            {/* --- SIDEBAR NAVIGATION --- */}
-            <aside className={`w-64 flex-shrink-0 flex flex-col justify-between p-4 ${themeClasses.sidebar}`}>
-              <div>
-                {/* Logo & Branding */}
-                <div className="flex items-center justify-between mb-8 px-2">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-[#00FF88]/30 flex items-center justify-center text-[#00FF88]">
-                      <i data-lucide="activity" className="w-5 h-5"></i>
-                    </div>
-                    <div>
-                      <h1 className="font-extrabold tracking-wider text-base leading-none">NEXXUS <span className={themeClasses.accentText}>FX</span></h1>
-                      <span className="text-[10px] text-gray-400 tracking-widest uppercase font-mono">Institutional Hub</span>
-                    </div>
-                  </div>
-                  <span className="bg-[#00FF88]/10 text-[#00FF88] text-[10px] font-bold px-2 py-0.5 rounded border border-[#00FF88]/20">
-                    {t.planTag}
-                  </span>
-                </div>
-
-                {/* Nav Items List */}
-                <nav className="space-y-1">
-                  {[
-                    { id: "overview", label: t.overview, icon: "layout-dashboard" },
-                    { id: "execution", label: t.execution, icon: "zap" },
-                    { id: "risk", label: t.risk, icon: "calculator" },
-                    { id: "quant", label: t.quant, icon: "bar-chart-3" },
-                    { id: "performance", label: t.performance, icon: "trending-up" },
-                    { id: "journal", label: t.journal, icon: "book-open", highlight: true },
-                    { id: "plan", label: t.plan, icon: "file-text" },
-                    { id: "notifications", label: t.notifications, icon: "bell" },
-                    { id: "antiTilt", label: t.antiTilt, icon: "shield-alert" },
-                    { id: "quantLeak", label: t.quantLeak, icon: "radar" },
-                    { id: "ecoCalendar", label: t.ecoCalendar, icon: "calendar" },
-                    { id: "propTracker", label: t.propTracker, icon: "award" },
-                    { id: "social", label: t.social, icon: "share-2" },
-                    { id: "portfolio", label: t.portfolio, icon: "pie-chart" }
-                  ].map(item => (
-                    <button
-                      key={item.id}
-                      onClick={() => setCurrentView(item.id)}
-                      className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition ${
-                        currentView === item.id
-                          ? theme === 'white' ? 'bg-slate-200 text-emerald-700 font-bold' : 'bg-white/10 text-[#00FF88] font-bold'
-                          : 'text-gray-400 hover:text-white hover:bg-white/5'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <i data-lucide={item.icon} className="w-4 h-4"></i>
-                        <span>{item.label}</span>
-                      </div>
-                      {item.highlight && (
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#00FF88] animate-ping"></span>
-                      )}
-                    </button>
-                  ))}
-                </nav>
-              </div>
-
-              {/* Sidebar Footer & Quick Settings */}
-              <div className="pt-4 border-t border-gray-800 space-y-2">
-                <button
-                  onClick={() => setIsSettingsOpen(true)}
-                  className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-gray-400 hover:text-white hover:bg-white/5"
-                >
-                  <div className="flex items-center gap-2">
-                    <i data-lucide="settings" className="w-4 h-4"></i>
-                    <span>{t.settings}</span>
-                  </div>
-                  <span className="text-[10px] bg-gray-800 px-1.5 py-0.5 rounded font-mono">{lang}</span>
-                </button>
-
-                <div className="p-3 rounded-lg bg-gray-900/50 border border-gray-800 text-xs">
-                  <div className="flex items-center justify-between text-gray-400 mb-1">
-                    <span>{t.accounts}</span>
-                    <span className="font-mono text-white">{accounts.length}/{maxAccounts}</span>
-                  </div>
-                  <div className="w-full bg-gray-800 h-1.5 rounded-full overflow-hidden">
-                    <div className="bg-[#00FF88] h-full" style={{ width: `${(accounts.length / maxAccounts) * 100}%` }}></div>
-                  </div>
-                </div>
-              </div>
-            </aside>
-
-            {/* --- MAIN CONTENT AREA --- */}
-            <main className="flex-1 overflow-y-auto p-4 md:p-8">
-              
-              {/* RESTORED: DIÁRIO DE TRADING (Exact Previous Configuration & Layout) */}
-              {currentView === "journal" && (
-                <DiaryModule themeClasses={themeClasses} t={t} />
-              )}
-
-              {/* RESTORED: SOCIAL SHARE & AUDIT (Exact Previous Visual Aesthetics) */}
-              {currentView === "social" && (
-                <SocialShareModule themeClasses={themeClasses} t={t} />
-              )}
-
-              {/* MEU PORTFÓLIO */}
-              {currentView === "portfolio" && (
-                <PortfolioModule themeClasses={themeClasses} t={t} />
-              )}
-
-              {/* OVERVIEW MODULE */}
-              {currentView === "overview" && (
-                <div className="space-y-6">
-                  <h2 className="text-2xl font-bold">Visão Geral da Conta</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    {[
-                      { title: "Patrimônio Total", val: "$341,830.00", change: "+4.2%", pos: true },
-                      { title: "Profit Factor", val: "2.14", change: "+0.18", pos: true },
-                      { title: "Win Rate Total", val: "68.4%", change: "-1.2%", pos: false },
-                      { title: "Max Drawdown", val: "2.8%", change: "-0.5%", pos: true }
-                    ].map((s, i) => (
-                      <div key={i} className={`p-5 rounded-xl ${themeClasses.card}`}>
-                        <span className="text-xs text-gray-400 uppercase tracking-wider">{s.title}</span>
-                        <div className="text-2xl font-mono font-bold mt-2">{s.val}</div>
-                        <span className={`text-xs font-semibold mt-1 inline-block ${s.pos ? 'text-emerald-400' : 'text-rose-400'}`}>{s.change} este mês</span>
-                      </div>
-                    ))}
-                  </div>
-                  <div className={`p-6 rounded-xl ${themeClasses.card}`}>
-                    <h3 className="font-bold text-lg mb-4">Evolução do Saldo Consolidado</h3>
-                    <div className="h-64 flex items-center justify-center border border-dashed border-gray-800 rounded-lg text-gray-500 font-mono text-xs">
-                      [Gráfico de Curva de Patrimônio MT5 / cTrader Live Sync]
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* OTHER 11 MODULES PLACEHOLDERS FOR COMPLETE 14-PAGE COVERAGE */}
-              {["execution", "risk", "quant", "performance", "plan", "notifications", "antiTilt", "quantLeak", "ecoCalendar", "propTracker"].includes(currentView) && (
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-2xl font-bold">{t[currentView] || currentView}</h2>
-                    <span className="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">Módulo Ativo • Sync Institutional</span>
-                  </div>
-                  <div className={`p-8 rounded-xl ${themeClasses.card} flex flex-col items-center justify-center text-center py-20`}>
-                    <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-[#00FF88] mb-4">
-                      <i data-lucide="layers" className="w-8 h-8"></i>
-                    </div>
-                    <h3 className="text-xl font-bold mb-2">Painel de {t[currentView]}</h3>
-                    <p className="text-gray-400 text-sm max-w-md">Todos os parâmetros quantitativos e logs operacionais sincronizados com o servidor primário NEXXUS FX.</p>
-                  </div>
-                </div>
-              )}
-
-            </main>
-          </div>
-
-          {/* --- SETTINGS DRAWER (9 Languages & 3 Themes) --- */}
-          {isSettingsOpen && (
-            <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex justify-end">
-              <div className={`w-full max-w-md h-full p-6 ${themeClasses.card} shadow-2xl flex flex-col justify-between overflow-y-auto`}>
-                <div>
-                  <div className="flex items-center justify-between pb-4 border-b border-gray-800">
-                    <h3 className="font-bold text-lg flex items-center gap-2">
-                      <i data-lucide="settings" className="w-5 h-5 text-[#00FF88]"></i>
-                      {t.settings}
-                    </h3>
-                    <button onClick={() => setIsSettingsOpen(false)} className="text-gray-400 hover:text-white">
-                      <i data-lucide="x" className="w-5 h-5"></i>
-                    </button>
-                  </div>
-
-                  {/* Theme Selector */}
-                  <div className="mt-6 space-y-3">
-                    <label className="text-xs uppercase font-bold tracking-wider text-gray-400">Tema do Hub</label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {[
-                        { id: 'default', label: 'Padrão Neon', color: 'bg-[#0A0E17] border-[#00FF88]' },
-                        { id: 'white', label: 'White Clean', color: 'bg-white border-slate-300 text-black' },
-                        { id: 'dark', label: 'Pitch Dark', color: 'bg-black border-zinc-700' }
-                      ].map(item => (
-                        <button
-                          key={item.id}
-                          onClick={() => setTheme(item.id)}
-                          className={`p-3 rounded-lg border text-xs font-medium text-center transition ${
-                            theme === item.id ? 'ring-2 ring-[#00FF88]' : 'opacity-70 hover:opacity-100'
-                          } ${item.color}`}
-                        >
-                          {item.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Language Selector (9 Languages) */}
-                  <div className="mt-6 space-y-3">
-                    <label className="text-xs uppercase font-bold tracking-wider text-gray-400">Idioma / Language</label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {[
-                        { code: 'PT', name: 'Português' },
-                        { code: 'EN', name: 'English' },
-                        { code: 'ES', name: 'Español' },
-                        { code: 'FR', name: 'Français' },
-                        { code: 'DE', name: 'Deutsch' },
-                        { code: 'IT', name: 'Italiano' },
-                        { code: 'JA', name: '日本語' },
-                        { code: 'ZH', name: '中文' },
-                        { code: 'RU', name: 'Русский' }
-                      ].map(l => (
-                        <button
-                          key={l.code}
-                          onClick={() => setLang(l.code)}
-                          className={`p-2.5 rounded-lg border text-xs font-semibold text-center transition ${
-                            lang === l.code ? 'border-[#00FF88] bg-[#00FF88]/10 text-[#00FF88]' : 'border-gray-800 text-gray-400 hover:text-white'
-                          }`}
-                        >
-                          {l.name}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-6 border-t border-gray-800">
-                  <button
-                    onClick={() => setIsSettingsOpen(false)}
-                    className={`w-full py-3 rounded-lg text-xs font-bold uppercase tracking-wider ${themeClasses.accent}`}
-                  >
-                    Salvar & Aplicar
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* --- RECURRENT PAYWALL & CHECKOUT MODAL --- */}
-          {isPaywallOpen && (
-            <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-              <div className={`w-full max-w-xl p-6 md:p-8 rounded-2xl ${themeClasses.card} border border-emerald-500/30 relative`}>
-                <button onClick={() => setIsPaywallOpen(false)} className="absolute top-4 right-4 text-gray-400 hover:text-white">
-                  <i data-lucide="x" className="w-6 h-6"></i>
-                </button>
-
-                <div className="text-center mb-6">
-                  <span className="bg-emerald-500/10 text-[#00FF88] text-xs font-bold px-3 py-1 rounded-full border border-emerald-500/20 uppercase tracking-widest">
-                    Renovação de Assinatura
-                  </span>
-                  <h3 className="text-2xl font-extrabold mt-3">Mantenha seu Acesso Institucional</h3>
-                  <p className="text-sm text-gray-400 mt-1">Plano PRO - Sincronização ilimitada MT5/cTrader e Antitilt Ativo</p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                  {/* Pix Payment Option */}
-                  <div className="p-4 rounded-xl border border-emerald-500/30 bg-emerald-950/20 text-center space-y-3">
-                    <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Pix Instantâneo</span>
-                    <div className="w-32 h-32 bg-white rounded-lg mx-auto flex items-center justify-center p-2">
-                      <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=NEXXUS_FX_HUB_PRO_RENEWAL" alt="QR Code PIX" className="w-full h-full" />
-                    </div>
-                    <button className="w-full py-2 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 rounded text-xs font-bold hover:bg-emerald-500/30">
-                      Copiar Chave PIX
-                    </button>
-                  </div>
-
-                  {/* Recurrent Card Option */}
-                  <div className="p-4 rounded-xl border border-gray-800 bg-gray-900/40 flex flex-col justify-between space-y-3">
-                    <div>
-                      <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Cartão de Crédito (Recorrente)</span>
-                      <div className="text-2xl font-mono font-bold mt-2">R$ 197<span className="text-xs text-gray-400">/mês</span></div>
-                      <p className="text-xs text-gray-400 mt-2">Cobrança automática. Cancele quando quiser sem fidelidade.</p>
-                    </div>
-                    <button className="w-full py-3 bg-[#00FF88] text-black font-bold rounded-lg text-xs hover:bg-emerald-400 transition">
-                      Pagar com Cartão
-                    </button>
-                  </div>
-                </div>
-
-                <p className="text-[11px] text-gray-500 text-center">Pagamentos processados com criptografia bancária de 256 bits.</p>
-              </div>
-            </div>
-          )}
-
-        </div>
-      );
-    }
-
-    // --- RESTORED MODULE 1: DIÁRIO DE TRADING (Exact Previous Configuration) ---
-    function DiaryModule({ themeClasses, t }) {
-      const [entries, setEntries] = useState([
-        {
-          id: 1,
-          date: "2026-10-24",
-          pair: "EURUSD",
-          type: "BUY",
-          result: "+$1,250.00",
-          pips: "+28.4",
-          timeframe: "M15",
-          notes: "Entrada Perfeita no Liquidity Sweep da sessão de NY. Seguiu à risca o plano.",
-          image: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=600&q=80"
-        },
-        {
-          id: 2,
-          date: "2026-10-23",
-          pair: "XAUUSD",
-          type: "SELL",
-          result: "-$420.00",
-          pips: "-14.0",
-          timeframe: "H1",
-          notes: "Hesitei no Fechamento. Saí antes do alvo de Fibonacci por ansiedade.",
-          image: null
-        }
-      ]);
-
-      const [filterPeriod, setFilterPeriod] = useState("Último mês");
-      const [searchTerm, setSearchTerm] = useState("");
-      const [newNotes, setNewNotes] = useState("");
-      const [newPair, setNewPair] = useState("EURUSD");
-      const [uploadedImage, setUploadedImage] = useState(null);
-
-      // Handle Image Attachment Preview
-      const handleImageUpload = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            setUploadedImage(reader.result);
-          };
-          reader.readAsDataURL(file);
+      const handleLogin = (e) => {
+        e.preventDefault();
+        if (userEmail && userPassword) {
+          setIsAuthenticated(true);
         }
       };
 
-      // Add New Diary Entry (+)
-      const handleAddEntry = () => {
-        if (!newNotes.trim()) return;
-        const newEntryObj = {
+      const handleConnectAccount = (e) => {
+        e.preventDefault();
+        const newAcc = {
           id: Date.now(),
-          date: new Date().toISOString().split('T')[0],
-          pair: newPair,
-          type: "BUY",
-          result: "+$850.00",
-          pips: "+18.0",
-          timeframe: "M15",
-          notes: newNotes,
-          image: uploadedImage
+          name: `${selectedPlatform.toUpperCase()} Account (${connAccount || 'API'})`,
+          broker: connServer || selectedPlatform.toUpperCase(),
+          type: selectedPlatform.toUpperCase(),
+          accountNumber: connAccount || '8890123',
+          balance: 10000.00,
+          equity: 10000.00,
+          status: 'Connected'
         };
-        setEntries([newEntryObj, ...entries]);
-        setNewNotes("");
-        setUploadedImage(null);
+        setConnectedAccounts([...connectedAccounts, newAcc]);
+        setActiveAccountId(newAcc.id);
+        setShowConnectModal(false);
+        setConnServer(''); setConnAccount(''); setConnPassword(''); setConnApiKey('');
+        alert(`Conta ${selectedPlatform.toUpperCase()} conectada com sucesso em modo Read-Only!`);
       };
 
+      // TELA DE LOGIN (Se não estiver autenticado)
+      if (!isAuthenticated) {
+        return (
+          <div class="min-h-screen flex items-center justify-center p-4 bg-[#0A0E17] text-slate-100">
+            <div class="max-w-md w-full bg-[#111827] border border-slate-800 rounded-2xl p-8 shadow-2xl relative overflow-hidden">
+              <div class="absolute -top-10 -right-10 w-32 h-32 bg-[#00FF88]/10 rounded-full blur-2xl"></div>
+              
+              <div class="text-center mb-8">
+                <div class="flex items-center justify-center gap-2 mb-2">
+                  <div class="w-8 h-8 rounded-lg bg-[#00FF88] flex items-center justify-center font-extrabold text-black text-xl">N</div>
+                  <span class="text-2xl font-extrabold tracking-wider font-mono text-white">NEXXUS <span class="text-[#00FF88]">FX</span></span>
+                </div>
+                <p class="text-xs text-slate-400">Entre para acessar seu Dashboard & Hub de Trading</p>
+              </div>
+
+              <form onSubmit={handleLogin} class="space-y-5">
+                <div>
+                  <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">E-mail do Assinante</label>
+                  <input 
+                    type="email" 
+                    required 
+                    value={userEmail}
+                    onChange={(e) => setUserEmail(e.target.value)}
+                    placeholder="seu.email@exemplo.com"
+                    class="w-full bg-[#0A0E17] border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00FF88]"
+                  />
+                </div>
+
+                <div>
+                  <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Senha</label>
+                  <input 
+                    type="password" 
+                    required 
+                    value={userPassword}
+                    onChange={(e) => setUserPassword(e.target.value)}
+                    placeholder="••••••••"
+                    class="w-full bg-[#0A0E17] border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00FF88]"
+                  />
+                </div>
+
+                <div class="flex items-center justify-between text-xs text-slate-400">
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" defaultChecked class="rounded bg-slate-800 border-slate-700 text-[#00FF88]" />
+                    <span>Lembrar acesso</span>
+                  </label>
+                  <a href="#" class="text-[#00FF88] hover:underline">Esqueceu a senha?</a>
+                </div>
+
+                <button 
+                  type="submit"
+                  class="w-full bg-[#00FF88] hover:bg-[#00e67a] text-black font-bold py-3.5 rounded-xl transition-all font-mono tracking-wider shadow-lg shadow-[#00FF88]/20"
+                >
+                  ACESSAR DASHBOARD
+                </button>
+              </form>
+
+              <div class="mt-6 text-center text-xs text-slate-500 border-t border-slate-800/80 pt-4">
+                Ainda não tem assinatura? <a href="#" class="text-[#00FF88] font-semibold hover:underline">Escolher Plano SaaS</a>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      // TELA PRINCIPAL DO DASHBOARD
       return (
-        <div className="space-y-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <h2 className="text-2xl font-extrabold tracking-tight">Diário de Trading</h2>
-              <p className="text-xs text-gray-400">Registro operacional ilimitado e histórico comportamental quantitativo.</p>
-            </div>
-
-            {/* Multi-Period Filter Selector & Search */}
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="relative">
-                <i data-lucide="search" className="w-4 h-4 absolute left-3 top-2.5 text-gray-400"></i>
-                <input
-                  type="text"
-                  placeholder="Buscar notas ou par..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className={`pl-9 pr-3 py-2 text-xs rounded-lg border ${themeClasses.input}`}
-                />
-              </div>
-
-              <select
-                value={filterPeriod}
-                onChange={(e) => setFilterPeriod(e.target.value)}
-                className={`py-2 px-3 text-xs rounded-lg border ${themeClasses.input}`}
-              >
-                <option>Última semana</option>
-                <option>Último mês</option>
-                <option>Último ano</option>
-                <option>Período personalizado</option>
-              </select>
-            </div>
-          </div>
-
-          {/* New Operational Entry Log Input Block */}
-          <div className={`p-5 rounded-xl ${themeClasses.card} border border-emerald-500/20`}>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[#00FF88] mb-3 flex items-center gap-2">
-              <i data-lucide="plus-circle" className="w-4 h-4"></i>
-              Novo Registro Diário (+)
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-3">
-              <select 
-                value={newPair} 
-                onChange={(e) => setNewPair(e.target.value)}
-                className={`p-2.5 text-xs rounded-lg border ${themeClasses.input}`}
-              >
-                <option>EURUSD</option>
-                <option>GBPUSD</option>
-                <option>XAUUSD</option>
-                <option>BTCUSD</option>
-                <option>US30</option>
-              </select>
-
-              <label className="flex items-center gap-2 cursor-pointer p-2.5 rounded-lg border border-dashed border-gray-700 bg-gray-900/30 hover:bg-gray-800/50 text-xs text-gray-400">
-                <i data-lucide="image" className="w-4 h-4 text-[#00FF88]"></i>
-                <span>{uploadedImage ? "Imagem Anexada ✓" : "Anexar Print do Chart"}</span>
-                <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
-              </label>
-
-              {uploadedImage && (
-                <div className="relative w-12 h-10 rounded border border-gray-700 overflow-hidden">
-                  <img src={uploadedImage} alt="Preview" className="w-full h-full object-cover" />
-                  <button onClick={() => setUploadedImage(null)} className="absolute top-0 right-0 bg-red-600 text-white p-0.5">
-                    <i data-lucide="x" className="w-3 h-3"></i>
-                  </button>
-                </div>
-              )}
-            </div>
-
-            <textarea
-              rows="2"
-              placeholder="Descreva seu estado mental, contexto do mercado e o motivo da entrada..."
-              value={newNotes}
-              onChange={(e) => setNewNotes(e.target.value)}
-              className={`w-full p-3 text-xs rounded-lg border mb-3 ${themeClasses.input}`}
-            ></textarea>
-
-            <button
-              onClick={handleAddEntry}
-              className={`px-5 py-2.5 rounded-lg text-xs font-bold flex items-center gap-2 ${themeClasses.accent}`}
-            >
-              <i data-lucide="plus" className="w-4 h-4"></i>
-              Adicionar ao Diário
-            </button>
-          </div>
-
-          {/* Behavioral Summary Blocks (Último mês, Último trimestre, Último semestre, Último ano) */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {[
-              { title: "Último Mês", winRate: "72%", discipline: "94%", tiltRisk: "Baixo" },
-              { title: "Último Trimestre", winRate: "68%", discipline: "91%", tiltRisk: "Médio" },
-              { title: "Último Semestre", winRate: "70%", discipline: "89%", tiltRisk: "Baixo" },
-              { title: "Último Ano", winRate: "66%", discipline: "88%", tiltRisk: "Baixo" }
-            ].map((b, i) => (
-              <div key={i} className={`p-4 rounded-xl ${themeClasses.card}`}>
-                <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">{b.title}</span>
-                <div className="mt-2 text-xs space-y-1">
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Win Rate:</span>
-                    <span className="font-mono font-bold text-emerald-400">{b.winRate}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Disciplina:</span>
-                    <span className="font-mono text-white">{b.discipline}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Risco Tilt:</span>
-                    <span className="font-mono text-emerald-400">{b.tiltRisk}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Diary Entries Log List */}
-          <div className="space-y-4">
-            {entries.map((item) => (
-              <div key={item.id} className={`p-5 rounded-xl ${themeClasses.card} border-l-4 ${item.result.startsWith('+') ? 'border-l-emerald-500' : 'border-l-rose-500'}`}>
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-gray-800/80 pb-3 mb-3">
-                  <div className="flex items-center gap-3">
-                    <span className="font-mono font-extrabold text-sm text-white">{item.pair}</span>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${item.type === 'BUY' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'}`}>
-                      {item.type}
-                    </span>
-                    <span className="text-xs text-gray-400 font-mono">{item.timeframe}</span>
-                  </div>
-                  <div className="flex items-center gap-4 text-xs font-mono">
-                    <span className="text-gray-400">{item.date}</span>
-                    <span className={item.result.startsWith('+') ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}>
-                      {item.result} ({item.pips} pips)
-                    </span>
-                  </div>
-                </div>
-
-                <p className="text-xs text-gray-300 leading-relaxed mb-3">{item.notes}</p>
-
-                {item.image && (
-                  <div className="mt-3 rounded-lg overflow-hidden border border-gray-800 max-w-md">
-                    <img src={item.image} alt="Chart Snapshot" className="w-full h-auto object-cover hover:scale-105 transition duration-300" />
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      );
-    }
-
-    // --- RESTORED MODULE 2: SOCIAL SHARE CARD (Exact Previous Visual Aesthetics) ---
-    function SocialShareModule({ themeClasses, t }) {
-      const [traderName, setTraderName] = useState("@trader_nexxus");
-      const [hideBalance, setHideBalance] = useState(false);
-      const currentDate = "24/10/2026"; // Real-time updated date stamp
-
-      return (
-        <div className="space-y-6">
-          <div>
-            <h2 className="text-2xl font-extrabold tracking-tight">Social Share Card Generator</h2>
-            <p className="text-xs text-gray-400">Gere cards institucionais de alta estética para compartilhamento em redes sociais.</p>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
-            {/* Customization Controls */}
-            <div className={`p-5 rounded-xl ${themeClasses.card} space-y-4`}>
-              <h3 className="font-bold text-sm text-[#00FF88] uppercase tracking-wider">Personalizar Card</h3>
-
+        <div class="min-h-screen flex flex-col bg-[#0A0E17] text-slate-100">
+          
+          {/* HEADER PRINCIPAL */}
+          <header class="bg-[#111827] border-b border-slate-800 px-6 py-4 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-40">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-xl bg-[#00FF88] flex items-center justify-center font-extrabold text-black text-xl shadow-lg shadow-[#00FF88]/20">N</div>
               <div>
-                <label className="text-xs text-gray-400 block mb-1">Trader Handle / Nome</label>
-                <input
-                  type="text"
-                  value={traderName}
-                  onChange={(e) => setTraderName(e.target.value)}
-                  className={`w-full p-2.5 text-xs rounded-lg border ${themeClasses.input}`}
-                />
+                <span class="text-xl font-extrabold tracking-wider font-mono text-white">NEXXUS <span class="text-[#00FF88]">FX</span></span>
+                <span class="text-[10px] bg-[#00FF88]/10 text-[#00FF88] border border-[#00FF88]/30 px-2 py-0.5 rounded-full ml-2 font-mono">PRO HUB</span>
+              </div>
+            </div>
+
+            {/* SELETOR DE CONTA E BOTÃO CONECTAR */}
+            <div class="flex items-center gap-3">
+              <div class="bg-[#0A0E17] border border-slate-700 rounded-xl px-3 py-1.5 flex items-center gap-2 text-xs">
+                <span class="w-2 h-2 rounded-full bg-[#00FF88] animate-pulse"></span>
+                <span class="text-slate-400">Conta Ativa:</span>
+                <select 
+                  value={activeAccountId} 
+                  onChange={(e) => setActiveAccountId(Number(e.target.value))}
+                  class="bg-transparent text-white font-mono font-bold focus:outline-none cursor-pointer"
+                >
+                  {connectedAccounts.map(acc => (
+                    <option key={acc.id} value={acc.id} class="bg-[#111827] text-white">
+                      {acc.name} (${acc.balance.toLocaleString()})
+                    </option>
+                  ))}
+                </select>
               </div>
 
-              <div className="flex items-center justify-between pt-2">
-                <span className="text-xs text-gray-300">Ocultar Valores em Dólar ($)</span>
-                <input
-                  type="checkbox"
-                  checked={hideBalance}
-                  onChange={(e) => setHideBalance(e.target.checked)}
-                  className="w-4 h-4 accent-[#00FF88] rounded"
-                />
-              </div>
+              <button 
+                onClick={() => setShowConnectModal(true)}
+                class="bg-[#00FF88] hover:bg-[#00e67a] text-black font-bold px-4 py-2 rounded-xl text-xs font-mono transition-all flex items-center gap-1.5 shadow-md shadow-[#00FF88]/10"
+              >
+                <span>⚡</span> CONECTAR CONTA
+              </button>
 
-              <button className={`w-full py-3 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 ${themeClasses.accent}`}>
-                <i data-lucide="download" className="w-4 h-4"></i>
-                Baixar Card em Alta Resolução
+              <button 
+                onClick={() => setIsAuthenticated(false)}
+                class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-3 py-2 rounded-xl border border-slate-700 transition-all"
+                title="Sair da Conta"
+              >
+                Sair
               </button>
             </div>
+          </header>
 
-            {/* RESTORED SOCIAL CARD PREVIEW CANVAS */}
-            <div className="lg:col-span-2 flex items-center justify-center">
-              <div className="w-full max-w-lg p-8 rounded-3xl border border-[#00FF88]/30 social-card-gradient shadow-2xl relative overflow-hidden text-white">
-                
-                {/* Background Aesthetics Glows */}
-                <div className="absolute -top-12 -right-12 w-48 h-48 bg-[#00FF88]/10 rounded-full blur-3xl pointer-events-none"></div>
-                <div className="absolute -bottom-12 -left-12 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
-
-                {/* Header */}
-                <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-[#00FF88] text-black font-extrabold flex items-center justify-center text-sm">
-                      NX
-                    </div>
-                    <div>
-                      <h4 className="font-extrabold text-sm tracking-wider">NEXXUS FX</h4>
-                      <p className="text-[10px] text-gray-400 font-mono">VERIFIED AUDIT</p>
-                    </div>
-                  </div>
-                  <span className="text-xs font-mono text-gray-400">{currentDate}</span>
-                </div>
-
-                {/* Main Stats Block */}
-                <div className="space-y-4 my-6">
-                  <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest">Resultado Diário</span>
-                  <div className="text-4xl md:text-5xl font-mono font-extrabold text-[#00FF88] text-glow">
-                    {hideBalance ? "+4.25%" : "+$4,250.00"}
-                  </div>
-                  <div className="flex gap-4 text-xs font-mono text-gray-300">
-                    <span>Win Rate: <strong className="text-white">83.3%</strong></span>
-                    <span>Profit Factor: <strong className="text-white">3.12</strong></span>
-                  </div>
-                </div>
-
-                {/* Footer Handle */}
-                <div className="pt-4 border-t border-white/10 flex items-center justify-between text-xs font-mono text-gray-400">
-                  <span>{traderName}</span>
-                  <span className="text-[10px] text-[#00FF88]">hub.nexxusfx.com</span>
-                </div>
-
-              </div>
-            </div>
-
-          </div>
-        </div>
-      );
-    }
-
-    // --- MODULE 3: MEU PORTFÓLIO (Multi-Asset Consolidation) ---
-    function PortfolioModule({ themeClasses, t }) {
-      return (
-        <div className="space-y-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <h2 className="text-2xl font-extrabold tracking-tight">Meu Portfólio Consolidado</h2>
-              <p className="text-xs text-gray-400">Visão unificada de ativos: Trading FX, Crypto, Ações/FIIs e Commodities.</p>
-            </div>
-            <button className={`px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 ${themeClasses.accent}`}>
-              <i data-lucide="plus" className="w-4 h-4"></i>
-              Adicionar Categoria de Ativo
-            </button>
-          </div>
-
-          {/* Consolidated Summary Bar */}
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          {/* BARRA DE NAVEGAÇÃO DAS ABAS */}
+          <nav class="bg-[#0D131F] border-b border-slate-800 px-6 py-2 flex items-center gap-2 overflow-x-auto custom-scrollbar">
             {[
-              { title: "Patrimônio Total", val: "$485,200.00" },
-              { title: "Net Worth Liquído", val: "$420,150.00" },
-              { title: "PnL Acumulado", val: "+18.4%" },
-              { title: "Yield Passivo Mensal", val: "$2,140/mês" },
-              { title: "Risk Score", val: "Moderado (3.2)" }
-            ].map((p, i) => (
-              <div key={i} className={`p-4 rounded-xl ${themeClasses.card}`}>
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{p.title}</span>
-                <div className="text-lg font-mono font-bold mt-1 text-[#00FF88]">{p.val}</div>
-              </div>
+              { id: 'overview', label: '📊 Overview' },
+              { id: 'portfolio', label: '💼 Meu Portfólio' },
+              { id: 'execution', label: '⚡ Execução & Live' },
+              { id: 'risk', label: '🎯 Risco & Lotes' },
+              { id: 'analytics', label: '📈 Analytics' },
+              { id: 'diary', label: '📔 Diário de Trading' },
+              { id: 'social', label: '📸 Cards Sociais' }
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                class={`px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all font-mono ${
+                  activeTab === tab.id 
+                    ? 'bg-[#00FF88]/10 text-[#00FF88] border border-[#00FF88]/40 shadow-sm' 
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+                }`}
+              >
+                {tab.label}
+              </button>
             ))}
-          </div>
+          </nav>
 
-          {/* Multi-Asset Asset Class Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* CONTEÚDO PRINCIPAL DA ABA SELECIONADA */}
+          <main class="flex-1 p-6 max-w-7xl w-full mx-auto space-y-6">
             
-            {/* Category 1: Trading Primary Execution */}
-            <div className={`p-5 rounded-xl ${themeClasses.card} space-y-3`}>
-              <div className="flex items-center justify-between border-b border-gray-800 pb-3">
-                <div className="flex items-center gap-2">
-                  <i data-lucide="trending-up" className="w-5 h-5 text-[#00FF88]"></i>
-                  <h3 className="font-bold text-sm">Trading (MT5 & cTrader)</h3>
-                </div>
-                <span className="text-xs font-mono font-bold text-[#00FF88]">$341,830.00</span>
+            {/* CARDS DE RESUMO NO TOPO */}
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div class="bg-[#111827] border border-slate-800 rounded-2xl p-4">
+                <span class="text-xs text-slate-400 font-mono">SALDO DA CONTA</span>
+                <div class="text-2xl font-bold font-mono text-white mt-1">${currentAccount.balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
+                <span class="text-[10px] text-[#00FF88] font-mono">🟢 Conectado via {currentAccount.type}</span>
               </div>
-              <p className="text-xs text-gray-400">Contas de Mesa Proprietária e Execução Direta Ativas.</p>
-              <div className="p-3 bg-gray-900/50 rounded-lg text-xs space-y-1 font-mono">
-                <div className="flex justify-between"><span>FTMO Master:</span><span>$211,400.00</span></div>
-                <div className="flex justify-between"><span>IC Markets Personal:</span><span>$26,180.00</span></div>
-                <div className="flex justify-between"><span>FundedNext Prop:</span><span>$104,250.00</span></div>
+
+              <div class="bg-[#111827] border border-slate-800 rounded-2xl p-4">
+                <span class="text-xs text-slate-400 font-mono">PATRIMÔNIO (EQUITY)</span>
+                <div class="text-2xl font-bold font-mono text-white mt-1">${currentAccount.equity.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
+                <span class="text-[10px] text-[#00FF88] font-mono">+3.52% no Mês</span>
+              </div>
+
+              <div class="bg-[#111827] border border-slate-800 rounded-2xl p-4">
+                <span class="text-xs text-slate-400 font-mono">P&L ATUAL (HOJE)</span>
+                <div class="text-2xl font-bold font-mono text-[#00FF88] mt-1">+$439.40</div>
+                <span class="text-[10px] text-slate-400 font-mono">4 operações encerradas</span>
+              </div>
+
+              <div class="bg-[#111827] border border-slate-800 rounded-2xl p-4">
+                <span class="text-xs text-slate-400 font-mono">WIN RATE</span>
+                <div class="text-2xl font-bold font-mono text-white mt-1">78.4%</div>
+                <span class="text-[10px] text-[#00FF88] font-mono">Profit Factor: 2.34</span>
               </div>
             </div>
 
-            {/* Category 2: Crypto (Kraken Read-Only API Guide) */}
-            <div className={`p-5 rounded-xl ${themeClasses.card} space-y-3`}>
-              <div className="flex items-center justify-between border-b border-gray-800 pb-3">
-                <div className="flex items-center gap-2">
-                  <i data-lucide="bitcoin" className="w-5 h-5 text-amber-400"></i>
-                  <h3 className="font-bold text-sm">Crypto Wallet & Kraken API</h3>
+            {/* CONTEÚDO ESPECÍFICO DE CADA ABA */}
+            {activeTab === 'overview' && (
+              <div class="bg-[#111827] border border-slate-800 rounded-2xl p-6 space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                  <h2 class="text-lg font-bold font-mono text-white">📊 Visão Geral da Conta {currentAccount.name}</h2>
+                  <span class="text-xs text-[#00FF88] font-mono">Atualizado em tempo real</span>
                 </div>
-                <span className="text-xs font-mono font-bold text-amber-400">$84,370.00</span>
+                <p class="text-sm text-slate-300">
+                  Sua conta do servidor <strong class="text-white">{currentAccount.broker}</strong> está conectada em modo <strong>Read-Only</strong> via <strong>{currentAccount.type}</strong>. Todas as estatísticas de execuções, ordens abertas e histórico estão sendo sincronizadas automaticamente.
+                </p>
               </div>
-              <p className="text-xs text-gray-400">Conexão Read-Only com Kraken API e Cold Wallets.</p>
-              <div className="p-3 bg-gray-900/50 rounded-lg text-xs space-y-1 font-mono">
-                <div className="flex justify-between"><span>Bitcoin (BTC):</span><span>0.85 BTC ($58,200)</span></div>
-                <div className="flex justify-between"><span>Ethereum (ETH):</span><span>7.2 ETH ($26,170)</span></div>
+            )}
+
+            {activeTab === 'portfolio' && (
+              <div class="bg-[#111827] border border-slate-800 rounded-2xl p-6 space-y-4">
+                <h2 class="text-lg font-bold font-mono text-white">💼 Meu Portfólio Global Multi-Ativos</h2>
+                <p class="text-sm text-slate-400">Consolidação de Trading (MT5/cTrader), Criptomoedas (Kraken), Ações e Fundos (Banco Inter).</p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
+                  <div class="p-4 bg-[#0A0E17] border border-slate-800 rounded-xl">
+                    <span class="text-xs text-slate-400">Trading / Forex</span>
+                    <div class="text-xl font-bold text-[#00FF88] font-mono">${currentAccount.balance.toLocaleString()}</div>
+                  </div>
+                  <div class="p-4 bg-[#0A0E17] border border-slate-800 rounded-xl">
+                    <span class="text-xs text-slate-400">Kraken (Cripto)</span>
+                    <div class="text-xl font-bold text-white font-mono">$18,450.00</div>
+                  </div>
+                  <div class="p-4 bg-[#0A0E17] border border-slate-800 rounded-xl">
+                    <span class="text-xs text-slate-400">Banco Inter (Ações/FIIs)</span>
+                    <div class="text-xl font-bold text-white font-mono">R$ 45,200.00</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* DEMAIS ABAS SIMULADAS COM CONTEÚDO */}
+            {['execution', 'risk', 'analytics', 'diary', 'social'].includes(activeTab) && (
+              <div class="bg-[#111827] border border-slate-800 rounded-2xl p-6 text-center py-12 space-y-3">
+                <div class="text-3xl">⚙️</div>
+                <h3 class="text-lg font-bold text-white font-mono uppercase">Aba {activeTab.toUpperCase()} Ativa</h3>
+                <p class="text-xs text-slate-400">Módulo totalmente sincronizado com a conta {currentAccount.name}.</p>
+              </div>
+            )}
+
+          </main>
+
+          {/* MODAL CONECTAR NOVA CONTA */}
+          {showConnectModal && (
+            <div class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+              <div class="bg-[#111827] border border-slate-800 rounded-2xl max-w-lg w-full p-6 space-y-6 relative">
+                <button 
+                  onClick={() => setShowConnectModal(false)}
+                  class="absolute top-4 right-4 text-slate-400 hover:text-white"
+                >✕</button>
+
+                <div>
+                  <h3 class="text-lg font-bold text-white font-mono flex items-center gap-2">
+                    <span>🔗</span> Conectar Nova Conta de Negociação
+                  </h3>
+                  <p class="text-xs text-slate-400 mt-1">Conexão 100% segura em Modo Read-Only (Apenas Leitura).</p>
+                </div>
+
+                {/* SELETOR DE PLATAFORMA */}
+                <div>
+                  <label class="block text-xs text-slate-400 font-mono mb-2 uppercase">1. Selecione a Plataforma</label>
+                  <div class="grid grid-cols-4 gap-2">
+                    {[
+                      { id: 'mt5', label: 'MT5 / MT4' },
+                      { id: 'ctrader', label: 'cTrader' },
+                      { id: 'kraken', label: 'Kraken' },
+                      { id: 'inter', label: 'Banco Inter' }
+                    ].map(p => (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => setSelectedPlatform(p.id)}
+                        class={`py-2 rounded-xl text-xs font-mono border transition-all ${
+                          selectedPlatform === p.id 
+                            ? 'bg-[#00FF88]/10 text-[#00FF88] border-[#00FF88]' 
+                            : 'bg-[#0A0E17] border-slate-800 text-slate-400'
+                        }`}
+                      >
+                        {p.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* FORMULÁRIO DE ACORDO COM A PLATAFORMA */}
+                <form onSubmit={handleConnectAccount} class="space-y-4">
+                  {selectedPlatform === 'mt5' && (
+                    <>
+                      <div>
+                        <label class="block text-xs text-slate-400 mb-1">Servidor da Corretora (Broker Server)</label>
+                        <input type="text" required placeholder="Ex: Exness-Real, FTMO-Server" value={connServer} onChange={e=>setConnServer(e.target.value)} class="w-full bg-[#0A0E17] border border-slate-700 rounded-xl p-2.5 text-xs text-white" />
+                      </div>
+                      <div>
+                        <label class="block text-xs text-slate-400 mb-1">Número da Conta MT5/MT4</label>
+                        <input type="text" required placeholder="Ex: 88492011" value={connAccount} onChange={e=>setConnAccount(e.target.value)} class="w-full bg-[#0A0E17] border border-slate-700 rounded-xl p-2.5 text-xs text-white" />
+                      </div>
+                      <div>
+                        <label class="block text-xs text-slate-400 mb-1">Senha do Investidor (Read-Only Password)</label>
+                        <input type="password" required placeholder="Senha de Leitura (não use a senha Master)" value={connPassword} onChange={e=>setConnPassword(e.target.value)} class="w-full bg-[#0A0E17] border border-slate-700 rounded-xl p-2.5 text-xs text-white" />
+                      </div>
+                    </>
+                  )}
+
+                  {selectedPlatform === 'kraken' && (
+                    <>
+                      <div>
+                        <label class="block text-xs text-slate-400 mb-1">API Key (Read-Only)</label>
+                        <input type="text" required placeholder="Sua API Key do Kraken Pro" value={connApiKey} onChange={e=>setConnApiKey(e.target.value)} class="w-full bg-[#0A0E17] border border-slate-700 rounded-xl p-2.5 text-xs text-white" />
+                      </div>
+                      <p class="text-[11px] text-slate-400 bg-[#0A0E17] p-3 rounded-xl border border-slate-800">
+                        💡 <strong>Passo a passo Kraken:</strong> Acesse Kraken Pro &gt; Settings &gt; API &gt; Create Key. Ative apenas a permissão <em>Query Funds / Read-Only</em>.
+                      </p>
+                    </>
+                  )}
+
+                  {selectedPlatform === 'inter' && (
+                    <div class="text-center py-4 space-y-3 bg-[#0A0E17] p-4 rounded-xl border border-slate-800">
+                      <p class="text-xs text-slate-300">Conexão segura via <strong>Open Finance Brasil</strong> (Banco Central).</p>
+                      <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white font-bold px-4 py-2 rounded-xl text-xs font-mono">
+                        AUTENTICAR NO APP BANCO INTER
+                      </button>
+                    </div>
+                  )}
+
+                  {selectedPlatform !== 'inter' && (
+                    <button type="submit" class="w-full bg-[#00FF88] hover:bg-[#00e67a] text-black font-bold py-3 rounded-xl text-xs font-mono">
+                      SALVAR E CONECTAR CONTA
+                    </button>
+                  )}
+                </form>
+
               </div>
             </div>
+          )}
 
-            {/* Category 3: Stocks & FIIs (Banco Inter Open Finance) */}
-            <div className={`p-5 rounded-xl ${themeClasses.card} space-y-3`}>
-              <div className="flex items-center justify-between border-b border-gray-800 pb-3">
-                <div className="flex items-center gap-2">
-                  <i data-lucide="building-2" className="w-5 h-5 text-blue-400"></i>
-                  <h3 className="font-bold text-sm">Ações & FIIs (Open Finance)</h3>
-                </div>
-                <span className="text-xs font-mono font-bold text-blue-400">$42,500.00</span>
-              </div>
-              <p className="text-xs text-gray-400">Integração Open Finance via Banco Inter e B3.</p>
-              <div className="p-3 bg-gray-900/50 rounded-lg text-xs space-y-1 font-mono">
-                <div className="flex justify-between"><span>FIIs Dividends:</span><span>R$ 1,850/mês</span></div>
-                <div className="flex justify-between"><span>Ações B3:</span><span>R$ 180,000.00</span></div>
-              </div>
-            </div>
-
-            {/* Category 4: Commodities & Direct Broker Links */}
-            <div className={`p-5 rounded-xl ${themeClasses.card} space-y-3`}>
-              <div className="flex items-center justify-between border-b border-gray-800 pb-3">
-                <div className="flex items-center gap-2">
-                  <i data-lucide="coins" className="w-5 h-5 text-yellow-500"></i>
-                  <h3 className="font-bold text-sm">Commodities & Indices</h3>
-                </div>
-                <span className="text-xs font-mono font-bold text-yellow-500">$16,500.00</span>
-              </div>
-              <p className="text-xs text-gray-400">Ouro Físico, XAUUSD Spot e contratos futuros WTI.</p>
-              <div className="p-3 bg-gray-900/50 rounded-lg text-xs space-y-1 font-mono">
-                <div className="flex justify-between"><span>Gold Physical Custody:</span><span>100g ($8,400)</span></div>
-                <div className="flex justify-between"><span>WTI Oil Futures:</span><span>$8,100</span></div>
-              </div>
-            </div>
-
-          </div>
         </div>
       );
     }
 
-    // --- RENDER APPLICATION TO DOM ---
-    const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<App />);
+    ReactDOM.render(<App />, document.getElementById('root'));
   </script>
 </body>
 </html>
